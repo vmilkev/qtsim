@@ -1,4 +1,4 @@
-function [ RGenotype, ModParam, s ] = GetRefGenotype( SNP, paramDataFileName, codingRegionSize, reproduce, rngState, ind_id )
+function [ RGenotype, ModParam, s ] = GetRefGenotype( SNP, paramDataStr, codingRegionSize, reproduce, rngState, ind_id )
 
 if ~exist('ind_id','var')
     use_indID = false;
@@ -26,7 +26,7 @@ RGenotype.alleles = getRefAlleles( SNP );
 RGenotype.plmph_locat = getPolymorphLocation( snp_num, codingRegionSize );
 
 % (3) Assign the necessary parameters of GR model for each gene in reference genotype
-[ RGenotype.grm_param, ModParam ] = setRefGenotModelParam( paramDataFileName, snp_num, s );
+[ RGenotype.grm_param, ModParam ] = setRefGenotModelParam( paramDataStr, snp_num, s );
 
 % (4) create IDs for SNPs and genotypes
 if ( use_indID )
@@ -44,7 +44,7 @@ end
 % Local Functions
 %---------------------------------------------------------------
 
-function [ refGenotypeModelPar, refParam ] = setRefGenotModelParam( fileName, snpNum, rngState )
+function [ refGenotypeModelPar, refParam ] = setRefGenotModelParam( parstr, snpNum, rngState )
 
 % Each gene in reference genotype is parametrised by random sampling from
 % normal distribution N( base_value, std(base_value) ).
@@ -52,63 +52,102 @@ function [ refGenotypeModelPar, refParam ] = setRefGenotModelParam( fileName, sn
 % set the state of random number generator
 rng(rngState);
 
-% read parameters data from *.rgna file
-delimiter = ';';
+% % read parameters data from *.rgna file
+% delimiter = ';';
+% 
+% formatSpec = '%s%s%*s%[^\n\r]';
+% 
+% fileID = fopen(fileName,'r');
+% 
+% dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string',  'ReturnOnError', false);
+% 
+% fclose(fileID);
+% 
+% param = table(dataArray{1:end-1});
+% 
+% paramSz = size(param);
+% for i3 = 2:2:paramSz(1,1)
+%     switch i3
+%         case 2
+%             refGene.kr = str2double( table2array( param(i3,1) ) );
+%             refVar.kr = str2double( table2array( param(i3,2) ) );
+%         case 4
+%             refGene.kp = str2double( table2array( param(i3,1) ) );
+%             refVar.kp = str2double( table2array( param(i3,2) ) );
+%         case 6
+%             refGene.gr = str2double( table2array( param(i3,1) ) );
+%             refVar.gr = str2double( table2array( param(i3,2) ) );
+%         case 8
+%             refGene.gp = str2double( table2array( param(i3,1) ) );
+%             refVar.gp = str2double( table2array( param(i3,2) ) );
+%         case 10
+%             refGene.Gbind = -str2double( table2array( param(i3,1) ) );
+%             refVar.Gbind = str2double( table2array( param(i3,2) ) );
+%         case 12
+%             refGene.kbind = str2double( table2array( param(i3,1) ) );
+%             refVar.kbind = str2double( table2array( param(i3,2) ) );
+%         case 14
+%             refGene.kattr = str2double( table2array( param(i3,1) ) );
+%             refVar.kattr = str2double( table2array( param(i3,2) ) );
+%         case 16
+%             refGene.GattrA = -str2double( table2array( param(i3,1) ) );
+%             refVar.GattrA = str2double( table2array( param(i3,2) ) );
+%         case 18
+%             refGene.krepr = str2double( table2array( param(i3,1) ) );
+%             refVar.krepr = str2double( table2array( param(i3,2) ) );
+%         case 20
+%             refGene.GattrR = -str2double( table2array( param(i3,1) ) );
+%             refVar.GattrR = str2double( table2array( param(i3,2) ) );
+%         case 22
+%             refGene.T = str2double( table2array( param(i3,1) ) );
+%             refVar.L = str2double( table2array( param(i3,2) ) );
+%             if ( refVar.L == 0.0 )
+%                 refVar.L = 0.01;
+%             end
+%         case 24
+%             refGene.stoch = str2double( table2array( param(i3,1) ) );
+%             refVar.stoch_var = str2double( table2array( param(i3,2) ) );
+%     end
+% end
+refGene.kr = parstr.raterna;
+refVar.kr = parstr.gendiff * parstr.raterna;
 
-formatSpec = '%s%s%*s%[^\n\r]';
+refGene.kp = parstr.ratep;
+refVar.kp = parstr.gendiff * parstr.ratep;
 
-fileID = fopen(fileName,'r');
+refGene.gr = parstr.degrna;
+refVar.gr = parstr.gendiff * parstr.degrna;
 
-dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string',  'ReturnOnError', false);
+refGene.gp = parstr.degp;
+refVar.gp = parstr.gendiff * parstr.degp;
 
-fclose(fileID);
+refGene.Gbind = -parstr.ebind;
+refVar.Gbind = 0.0;
 
-param = table(dataArray{1:end-1});
+refGene.kbind = parstr.kbind;
+refVar.kbind = 0.0;
 
-paramSz = size(param);
-for i3 = 2:2:paramSz(1,1)
-    switch i3
-        case 2
-            refGene.kr = str2double( table2array( param(i3,1) ) );
-            refVar.kr = str2double( table2array( param(i3,2) ) );
-        case 4
-            refGene.kp = str2double( table2array( param(i3,1) ) );
-            refVar.kp = str2double( table2array( param(i3,2) ) );
-        case 6
-            refGene.gr = str2double( table2array( param(i3,1) ) );
-            refVar.gr = str2double( table2array( param(i3,2) ) );
-        case 8
-            refGene.gp = str2double( table2array( param(i3,1) ) );
-            refVar.gp = str2double( table2array( param(i3,2) ) );
-        case 10
-            refGene.Gbind = -str2double( table2array( param(i3,1) ) );
-            refVar.Gbind = str2double( table2array( param(i3,2) ) );
-        case 12
-            refGene.kbind = str2double( table2array( param(i3,1) ) );
-            refVar.kbind = str2double( table2array( param(i3,2) ) );
-        case 14
-            refGene.kattr = str2double( table2array( param(i3,1) ) );
-            refVar.kattr = str2double( table2array( param(i3,2) ) );
-        case 16
-            refGene.GattrA = -str2double( table2array( param(i3,1) ) );
-            refVar.GattrA = str2double( table2array( param(i3,2) ) );
-        case 18
-            refGene.krepr = str2double( table2array( param(i3,1) ) );
-            refVar.krepr = str2double( table2array( param(i3,2) ) );
-        case 20
-            refGene.GattrR = -str2double( table2array( param(i3,1) ) );
-            refVar.GattrR = str2double( table2array( param(i3,2) ) );
-        case 22
-            refGene.T = str2double( table2array( param(i3,1) ) );
-            refVar.L = str2double( table2array( param(i3,2) ) );
-            if ( refVar.L == 0.0 )
-                refVar.L = 0.01;
-            end
-        case 24
-            refGene.stoch = str2double( table2array( param(i3,1) ) );
-            refVar.stoch_var = str2double( table2array( param(i3,2) ) );
-    end
+refGene.kattr = parstr.kact;
+refVar.kattr = 0.0;
+
+refGene.GattrA = -parstr.eact;
+refVar.GattrA = 0.0;
+
+refGene.krepr = parstr.krep;
+refVar.krepr = 0.0;
+
+refGene.GattrR = -parstr.erep;
+refVar.GattrR = 0.0;
+
+refGene.T = parstr.tmax;
+refVar.L = parstr.tdil;
+if ( refVar.L == 0.0 )
+    refVar.L = 0.01;
 end
+
+refGene.stoch = ceil(parstr.stoch);
+refVar.stoch_var = parstr.stoch;
+
 
 refGene.GattrA2 = exp(-refGene.GattrA);
 refVar.GattrA2 = 0.0;

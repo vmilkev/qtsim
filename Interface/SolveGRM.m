@@ -1,4 +1,4 @@
-function [ X, Y, s, weit ] = SolveGRM( refGenotype, refParameters, iGenotype, A, R, coreMap, ncoreMap, coreW, reproduce, rngState )
+function [ X, Y, s, weit ] = SolveGRM( mut_coef, refGenotype, refParameters, iGenotype, A, R, coreMap, ncoreMap, coreW, reproduce, rngState )
 
 weit = containers.Map(keys(coreW),values(coreW));
 
@@ -13,18 +13,28 @@ end
 k = keys( coreMap );
 k_sz = size(k);
 
+%mut_coef = 0.25;
+
 for ik = 1:k_sz(1,2)
     snp = coreMap( k{ik} );
     r_all = refGenotype.alleles( snp );
     i_all = iGenotype( snp );
     mut_type = refGenotype.plmph_locat( snp );
     if (mut_type == 1)
-        mut1 = ( i_all - r_all + 3 )/3;
+        mut1 = ( mut_coef * (i_all - r_all) + 3 )/3;
         mut2 = 1.0;
     else
-        mut2 = ( i_all - r_all + 3 )/3;
+        mut2 = ( mut_coef * (i_all - r_all) + 3 )/3;
         mut1 = 1.0;
-        weit( snp ) = coreW( snp ) * mut2;
+        if ( mut2 == 1.0 )
+            weit( snp ) = coreW( snp ) * mut2;
+        else
+            % assume that only 50 % of SNP polymorphism in
+            % coding siquance leads to changes in gene's product
+            if ( rand(1,1) <= 0.5 )
+                weit( snp ) = coreW( snp ) * normrnd(1,0.2); % change in core product weight due to mutation
+            end
+        end
     end
     
     node( k{ik} ).activators = getRegMatInd( A, k{ik} );
@@ -58,10 +68,10 @@ for ik = 1:k_sz(1,2)
     i_all = iGenotype( snp );
     mut_type = refGenotype.plmph_locat( snp );
     if (mut_type == 1)
-        mut1 = ( i_all - r_all + 3 )/3;
+        mut1 = ( mut_coef * (i_all - r_all) + 3 )/3;
         mut2 = 1.0;
     else
-        mut2 = ( i_all - r_all + 3 )/3;
+        mut2 = ( mut_coef * (i_all - r_all) + 3 )/3;
         mut1 = 1.0;
     end
     

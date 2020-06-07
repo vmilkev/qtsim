@@ -63,7 +63,8 @@ if (stochastic.perform)
     options = ddeset('RelTol', 1.0e-2, 'NormControl', 'on');
     sol = dde23( @grm_stochastic, L, Y0, T, options );
 else
-    sol = dde23( @grm, L, Y0, T);
+    %options = ddeset('RelTol', 1.0e-4, 'NormControl', 'on');
+    sol = dde23( @grm, L, Y0, T );
 end
 
 X = sol.x;

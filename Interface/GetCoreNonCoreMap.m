@@ -1,4 +1,4 @@
-function [ cM, ncM, cW ] = GetCoreNonCoreMap( coreFileName, ntwGenes, ntwArch )
+function [ cM, ncM, cW, recM ] = GetCoreNonCoreMap( coreFileName, ntwGenes, ntwArch )
 
 % read core IDs from file
 [ core_snp, core_snp_num, core_w ] = getCoreID(coreFileName);
@@ -41,6 +41,11 @@ end
 cM = containers.Map(coreNodes,core_snp);
 cW = containers.Map(core_snp,core_w);
 ncM = containers.Map(n_coreNodes,n_core_snp);
+
+% map container where keys[ nodes ] and values[ SNPs ]
+netNodes = [coreNodes n_coreNodes];
+snpNodes = [core_snp n_core_snp];
+recM = containers.Map( netNodes, snpNodes );
 
 end
 %---------------------------------------------------------------

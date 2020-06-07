@@ -1,7 +1,7 @@
-function WriteResults( rngState, trait, products, coreMap, ncoreMap, genot_id, dynSol, genes, runAll )
+function WriteResults( rslt_path, rngState, trait, products, coreMap, ncoreMap, genot_id, dynSol, genes, runAll, grange )
 
-if ~exist('runAll','var')
-    runAll = 1;
+if ~exist('grange','var')
+    grange.start = 0;
 end
 
 % rows: diff. genotypes; col.: (additive) trait for corresponding genotype
@@ -20,17 +20,42 @@ res_prod(:,1) = snp(:,1);
 res_prod(:,2) = node(:,1);
 res_prod(:,3:size(products,2)+2) = products(:,1:end);
 
-res_folder = strcat( 'traitsim_results-', date );
+if ( ~rslt_path )
+    res_folder = strcat( 'traitsim_results-', date );
+else
+    res_folder = rslt_path;
+end
 
 if ( ~MakeFolder(res_folder) )
     return;
 end
 
-fName = strcat( res_folder, '/traits.txt' );
-dlmwrite( fName,res_trait,'Delimiter',' ' );
+% if (grange.start)
+%     iter_name1 = num2str( grange.start );
+%     iter_name2 = num2str( grange.end );
+%     name0 = strcat( iter_name1,'-' );
+%     name0 = strcat( name0,iter_name2 );
+%     name0 = strcat( name0,'.txt' );
+%     name0 = strcat( '/traits_',name0 );
+%     fName = strcat( res_folder,name0);
+% else
+    fName = strcat( res_folder, '/traits.txt' );
+% end
 
-fName = strcat( res_folder, '/products.txt' );
-dlmwrite( fName,res_prod,'Delimiter',' ' );
+dlmwrite( fName,res_trait,'-append','Delimiter',' ' );
+
+if (grange.start)
+    iter_name1 = num2str( grange.start );
+    iter_name2 = num2str( grange.end );
+    name0 = strcat( iter_name1,'-' );
+    name0 = strcat( name0,iter_name2 );
+    name0 = strcat( name0,'.txt' );
+    name0 = strcat( '/products_',name0 );
+    fName = strcat( res_folder,name0);
+else
+    fName = strcat( res_folder, '/products.txt' );
+end
+dlmwrite( fName,res_prod,'Delimiter',' ' ); 
 
 fName = strcat( res_folder, '/randomstate.txt' );
 fileID = fopen(fName,'w');
