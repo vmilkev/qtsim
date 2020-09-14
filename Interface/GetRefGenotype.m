@@ -57,7 +57,7 @@ rng(rngState);
 % 
 % formatSpec = '%s%s%*s%[^\n\r]';
 % 
-% fileID = fopen(fileName,'r');
+% fileID = fopen(parstr,'r');
 % 
 % dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string',  'ReturnOnError', false);
 % 
@@ -109,19 +109,25 @@ rng(rngState);
 %             refVar.stoch_var = str2double( table2array( param(i3,2) ) );
 %     end
 % end
+
 refGene.kr = parstr.raterna;
 refVar.kr = parstr.gendiff * parstr.raterna;
+%refVar.kr = 0.0;
 
 refGene.kp = parstr.ratep;
-refVar.kp = parstr.gendiff * parstr.ratep;
+%refVar.kp = parstr.gendiff * parstr.ratep;
+refVar.kp = 0.0;
 
 refGene.gr = parstr.degrna;
-refVar.gr = parstr.gendiff * parstr.degrna;
+%refVar.gr = parstr.gendiff * parstr.degrna;
+refVar.gr = 0.0;    
 
 refGene.gp = parstr.degp;
-refVar.gp = parstr.gendiff * parstr.degp;
+%refVar.gp = parstr.gendiff * parstr.degp;
+refVar.gp = 0.0;
 
 refGene.Gbind = -parstr.ebind;
+%refVar.Gbind = 0.5 * parstr.gendiff * parstr.ebind;
 refVar.Gbind = 0.0;
 
 refGene.kbind = parstr.kbind;
@@ -176,11 +182,35 @@ parChar(15,1) = "stochastic_var";
         
 % Assign the necessary parameters of GR model for each gene in reference genotype
 for i3 = 1:snpNum
-    refGenotypeModelPar( i3 ).kr = normrnd( refGene.kr, refVar.kr );
-    refGenotypeModelPar( i3 ).kp = normrnd( refGene.kp, refVar.kp );
-    refGenotypeModelPar( i3 ).gr = normrnd( refGene.gr, refVar.gr );
-    refGenotypeModelPar( i3 ).gp = normrnd( refGene.gp, refVar.gp );
-    refGenotypeModelPar( i3 ).Gbind = normrnd( refGene.Gbind, refVar.Gbind );
+    
+    % we do not need negative values for these parameters
+    sampled_kr = normrnd( refGene.kr, refVar.kr );
+    if ( sampled_kr < 0.0 )
+        sampled_kr = 0.0;
+    end
+    sampled_kp = normrnd( refGene.kp, refVar.kp );
+    if ( sampled_kp < 0.0 )
+        sampled_kp = 0.0;
+    end
+    sampled_gr = normrnd( refGene.gr, refVar.gr );
+    if ( sampled_gr < 0.0 )
+        sampled_gr = 0.0;
+    end
+    sampled_gp = normrnd( refGene.gp, refVar.gp );
+    if ( sampled_gp < 0.0 )
+        sampled_gp = 0.0;
+    end
+    sampled_Gbind = normrnd( refGene.Gbind, refVar.Gbind );
+    if ( sampled_Gbind > 0.0 )
+        sampled_Gbind = 0.0;
+    end
+    
+    refGenotypeModelPar( i3 ).kr = sampled_kr;
+    refGenotypeModelPar( i3 ).kp = sampled_kp;
+    refGenotypeModelPar( i3 ).gr = sampled_gr;
+    refGenotypeModelPar( i3 ).gp = sampled_gp;
+    refGenotypeModelPar( i3 ).Gbind = sampled_Gbind;
+    
     refGenotypeModelPar( i3 ).kbind = normrnd( refGene.kbind, refVar.kbind );
     refGenotypeModelPar( i3 ).kattr = normrnd( refGene.kattr, refVar.kattr );
     refGenotypeModelPar( i3 ).krepr = normrnd( refGene.krepr, refVar.krepr );
@@ -277,6 +307,10 @@ function [L] = getPolymorphLocation(snpNum, codRate)
 
 % snpNum - is the number of SNPs
 % codRate - is the part of all SN polymorphism which fall under coding region
+
+% here the random number generator should always starts
+% with the same seed
+rng('default');
 
 L = zeros(1,snpNum);
 for i1 = 1:snpNum

@@ -18,14 +18,17 @@ if ( isempty(r_trait) )
     r_trait = ones(k_sz(1,2),1);
 end
 
+trait = 0;
+
 for ik = 1:k_sz(1,2)
     ip = k{ik} + nodes;
     Yp(ik,:) = yi(ip,st:ed);
     mYp(ik,1) = mean( yi(ip,st:ed));
-    v_trait(ik,1) = ( mYp(ik,1) * coreWeit( coreMap(k{ik}) ) )/r_trait(ik,1);
+    v_trait(ik,1) = ( mYp(ik,1) * coreWeit( coreMap(k{ik}) ) );
+    trait = trait + v_trait(ik,1)/r_trait(ik,1);
 end
 
-trait = sum(v_trait./k_sz(1,2));
+trait = trait/k_sz(1,2);
 
 
 end

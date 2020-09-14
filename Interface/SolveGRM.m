@@ -29,9 +29,9 @@ for ik = 1:k_sz(1,2)
         if ( mut2 == 1.0 )
             weit( snp ) = coreW( snp ) * mut2;
         else
-            % assume that only 50 % of SNP polymorphism in
+            % assume that only 10 % of SNP polymorphism in
             % coding siquance leads to changes in gene's product
-            if ( rand(1,1) <= 0.5 )
+            if ( rand(1,1) <= 0.1 )
                 weit( snp ) = coreW( snp ) * normrnd(1,0.2); % change in core product weight due to mutation
             end
         end
@@ -75,17 +75,40 @@ for ik = 1:k_sz(1,2)
         mut1 = 1.0;
     end
     
-    if (snp_flag)
+    if (snp_flag) % this is the case if the number of genes in network higher than submitted SNPs
+        
         mut1 = 1.0;
         mut2 = 1.0;
         
+        % we do not need negative values for these parameters
+        sampled_kr = normrnd( refParameters.mean.kr, refParameters.std.kr );
+        if ( sampled_kr < 0.0 )
+            sampled_kr = 0.0;
+        end
+        sampled_kp = normrnd( refParameters.mean.kp, refParameters.std.kp );
+        if ( sampled_kp < 0.0 )
+            sampled_kp = 0.0;
+        end
+        sampled_gr = normrnd( refParameters.mean.gr, refParameters.std.gr );
+        if ( sampled_gr < 0.0 )
+            sampled_gr = 0.0;
+        end
+        sampled_gp = normrnd( refParameters.mean.gp, refParameters.std.gp );
+        if ( sampled_gp < 0.0 )
+            sampled_gp = 0.0;
+        end
+        sampled_Gbind = mut1 * normrnd( refParameters.mean.Gbind, refParameters.std.Gbind );
+        if ( sampled_Gbind > 0.0 )
+            sampled_Gbind = 0.0;
+        end
+
         node( k{ik} ).activators = getRegMatInd( A, k{ik} );
         node( k{ik} ).repressors = getRegMatInd( R, k{ik} );
-        node( k{ik} ).kr = normrnd( refParameters.mean.kr, refParameters.std.kr );
-        node( k{ik} ).kp = normrnd( refParameters.mean.kp, refParameters.std.kp );
-        node( k{ik} ).gr = normrnd( refParameters.mean.gr, refParameters.std.gr );
-        node( k{ik} ).gp = normrnd( refParameters.mean.gp, refParameters.std.gp );
-        node( k{ik} ).Gbind = mut1 * normrnd( refParameters.mean.Gbind, refParameters.std.Gbind );
+        node( k{ik} ).kr = sampled_kr;
+        node( k{ik} ).kp = sampled_kp;
+        node( k{ik} ).gr = sampled_gr;
+        node( k{ik} ).gp = sampled_gp;
+        node( k{ik} ).Gbind = sampled_Gbind;
         node( k{ik} ).kbind = normrnd( refParameters.mean.kbind, refParameters.std.kbind );
         node( k{ik} ).kattr = normrnd( refParameters.mean.kattr, refParameters.std.kattr );
         node( k{ik} ).krepr = normrnd( refParameters.mean.krepr, refParameters.std.krepr );

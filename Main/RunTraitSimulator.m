@@ -15,25 +15,52 @@ else
     runtime_log( 0, 'TraitSim parameters file name..........:', fParam );
 end
 
-%par = ReadTraitSimParam( fParam );
+% Read configuration parameters from *.tsim file
 par = fReadSimPar( fParam );
 
+if ( isempty(par.report_def) )
+    par.report_def = 0;
+elseif ( isempty(par.report_genS) )
+    par.report_genS = 0;
+elseif ( isempty(par.report_idS) )
+    par.report_idS = 0;
+end
+
+is_report = par.report_def + par.report_genS + par.report_idS;
+make_report = 0;
+
 if ( isempty(par.allele) )
-    runtime_log( 0, 'ERROR: there is no SNPs file name in "*.tsim" file, otherwise there are problems while opening file!' );
-    return;
+    runtime_log( 0, 'WARNING: there is no SNPs file name in "*.tsim" file, otherwise there are problems while opening file!' );
+    make_report = 1;
 end
+
 if ( isempty(par.core) )
-    runtime_log( 0, 'ERROR: there is no Core SNPs file name in "*.tsim" file, otherwise there are problems while opening file!' );
-    return;
+    runtime_log( 0, 'WARNING: there is no Core SNPs file name in "*.tsim" file, otherwise there are problems while opening file!' );
+    make_report = 1;
 end
+
 if ( isempty(par.param) )
-    runtime_log( 0, 'ERROR: there is no model parameters file name in "*.tsim" file, otherwise there are problems while opening file!' );
+    runtime_log( 0, 'WARNING: there is no model parameters file name in "*.tsim" file, otherwise there are problems while opening file!' );
+    make_report = 1;
+end
+
+% perform ONLY the report operations
+if ( make_report && is_report )
+    % check if $OUTRES parameter exists (where the output results are)
+    if ( isempty(par.savedpath) )
+        runtime_log( 0, 'ERROR: there is no path to simulation results (under the keyword $OUTRES)!' );
+        return;
+    else
+        fSavedPath = par.savedpath;
+        get_report(fSavedPath, par);
+        runtime_log( 0, 'REPORTING COMPLETED SUCCESSFULLY' );
+        return;
+    end
+elseif ( make_report && ~is_report )
+    runtime_log( 0, 'ERROR: exit due to there are not enough input parameters!' );
     return;
 end
-% if ( isempty(par.network) )
-%     runtime_log( 0, 'ERROR: there is no network parameters file name in "*.tsim" file, otherwise there are problems while opening file!' );
-%     return;
-% end
+
 if ( isempty(par.scip) )
     par.scip = 0.2;
 end
@@ -49,8 +76,7 @@ end
 
 file_allele = par.allele;
 file_core = par.core;
-% file_model_param = par.model;
-% file_ntw_param = par.network;
+file_model_param = par.model;
 file_param = par.param;
 skip_sol = par.scip;
 run_all = par.all;
@@ -67,8 +93,6 @@ end
 
 runtime_log( 0, 'Alleles file name......................:', file_allele );
 runtime_log( 0, 'Core alleles file name.................:', file_core );
-% runtime_log( 0, 'Model parameters file name.............:', file_model_param );
-% runtime_log( 0, 'Network parameters file name...........:', file_ntw_param );
 runtime_log( 0, 'Parameters file name...................:', file_param );
 runtime_log( 0, 'Amount of data to remove from solution.:', num2str(skip_sol) );
 runtime_log( 0, 'Simulate ALL genotypes.................:', num2str(run_all) );
@@ -103,30 +127,14 @@ else
     runtime_log( 0, 'Output results path....................:', fSavedPath );
 end
 
-% if ( strcmp( fSavedNetwork, 'foo' ) )
-%     fSavedNetwork = 0;
-% else
-%     runtime_log( 0, 'Reused Network file name...............:', fSavedNetwork );
-% end
-% 
-% if ( strcmp( fSavedActivators, 'foo' ) )
-%     fSavedActivators = 0;
-% else
-%     runtime_log( 0, 'Reused Activators file name............:', fSavedActivators );
-% end
-% 
-% if ( strcmp( fSavedRepressors, 'foo' ) )
-%     fSavedRepressors = 0;
-% else
-%     runtime_log( 0, 'Reused Repressors file name............:', fSavedRepressors );
-% end
-% 
-% if ( strcmp( fSavedPath, 'foo' ) )
-%     fSavedPath = 0;
-% else
-%     runtime_log( 0, 'Output results path....................:', fSavedPath );
-% end
+if ( isempty(par.results) )
+    fResults = 'full';
+else
+    fResults = par.results;
+    runtime_log( 0, 'Output results option..................:', fResults );
+end
 
+% Read model's parameters from *grm file
 [ parN, parM ] = fReadParam( file_param );
 
 if ( isempty(parN.arch) )
@@ -313,11 +321,12 @@ end
 
 [ r_trait, r_vtrait ] = CalcTrait( Xr, Yr, core_map, r_weit, ntw_genes, skip_sol, []);
 
-if ( ~run_all )
+%if ( ~run_all )
     dynsol(1).x = Xr;
     dynsol(1).y = Yr;
     runtime_log( 0, 'WRITING CORE TRAITS AND CORE PROTUCTS TO A FILE' );
-    WriteResults( fSavedPath, rng_state, r_trait, r_vtrait, core_map, ncore_map, refGenotype.genotypes_id, dynsol, ntw_genes, run_all );
+    WriteResults( fResults, fSavedPath, rng_state, r_trait, r_vtrait, core_map, ncore_map, refGenotype.genotypes_id, dynsol, ntw_genes, 0 );
+if ( ~run_all )
     runtime_log( 0, 'SIMULATION COMPLETED SUCCESSFULLY' );
     return;
 end
@@ -330,7 +339,7 @@ blocks = ceil( ind_num/jobsize );
 for par_i = 1:blocks
     
     % Explanation for outer/inner 'FOR/PARFOR' organisation (but not for inner/outer 'PARFOR/FOR').
-    % The role of outer 'FOR' loop is to unload the memory during computation. 
+    % The role of outer 'FOR' loop is to unload the memory during computation.
     % In order to inner 'PARFOR' loop be efficient, the 'blocks' variable should be
     % small, just enough to keep memory consumption constant during computations.
     % If the jobsize = ind_num, the case become trivial where the outer 'FOR' loop
@@ -358,18 +367,26 @@ for par_i = 1:blocks
         dynsol(ig).x = Xi;
         dynsol(ig).y = Yi;
         [ a_trait(ig,1), vtrait(:,ig) ] = CalcTrait( Xi, Yi, core_map, cweit, ntw_genes, skip_sol, r_vtrait);
-
+        
     end
-
+    
     runtime_log( 0, 'WRITING CORE TRAITS AND CORE PROTUCTS TO A FILE' );
     
     gRange.start = ini_i;
     gRange.end = end_i;
     
-    WriteResults( fSavedPath, rng_state, a_trait, vtrait, core_map, ncore_map, refGenotype.genotypes_id(1,ini_i:end_i), dynsol, ntw_genes, run_all, gRange );
+    WriteResults( fResults, fSavedPath, rng_state, a_trait, vtrait, core_map, ncore_map, refGenotype.genotypes_id(1,ini_i:end_i), dynsol, ntw_genes, run_all, gRange );
     
     %WriteResults( rng_state, a_trait, vtrait, core_map, ncore_map, refGenotype.genotypes_id, dynsol, ntw_genes );
+    
+end
 
+if ( is_report )
+    if ( fSavedPath == 0 )
+        fSavedPath = 'traitsim_report';
+    end
+    get_report( fSavedPath, par );
+    runtime_log( 0, 'REPORTING COMPLETED SUCCESSFULLY' );
 end
 
 runtime_log( 0, 'SIMULATION COMPLETED SUCCESSFULLY' );
@@ -471,6 +488,7 @@ p.allele = [];
 p.core = [];
 p.model = [];
 p.network = [];
+p.param = [];
 p.scip = [];
 p.all = [];
 p.reproduce = [];
@@ -479,7 +497,17 @@ p.savedfileN = [];
 p.savedfileA = [];
 p.savedfileR = [];
 p.savedpath = [];
-p.more = [];
+p.results = [];
+p.more = []; % ???
+p.report_def = [];
+p.report_genS = [];
+p.report_genV = [];
+p.report_idS = [];
+p.report_idVi = [];
+p.report_idVg = [];
+
+report = {};
+r = 1;
 
 for i = 1:size(info,1)
     if ( ~isempty(info{i,1}) )
@@ -510,7 +538,45 @@ for i = 1:size(info,1)
                 p.savedfileR = info{i,2};
             case 'OUTRES'
                 p.savedpath = info{i,2};
+            case 'RESULTS'
+                p.results = info{i,2};
+            case 'REPORT'
+                report{r,1} = info{i,2};
+                r = r + 1;
         end
+    end
+end
+
+% parse the report cell array
+for l = 1:size(report,1)
+    tReport = strsplit(report{l,1}, ' ');
+    if ( strcmp(tReport{1,1}, 'default') )
+        p.report_def = 1;
+    elseif ( strcmp(tReport{1,1}, 'genes') )
+        p.report_genS = 1;
+        val = strsplit(tReport{1,2}, ',');
+        for i2 = 1:size(val,2)
+            p.report_genV(1,i2) = str2num(val{1,i2});
+        end
+    elseif ( strcmp(tReport{1,1}, 'ids') )
+        p.report_idS = 1;
+        val = strsplit(tReport{1,2}, ',');
+        for i3 = 1:size(val,2)
+            p.report_idVi(1,i3) = str2num(val{1,i3});
+        end
+        
+        if ( strcmp(tReport{1,3}, 'genes') )
+            val = strsplit(tReport{1,4}, ',');
+            for i4 = 1:size(val,2)
+                p.report_idVg(1,i4) = str2num(val{1,i4});
+            end
+        else
+            runtime_log( 0, 'ERROR: wrong parameter value under he $REPORT keyword!' );
+            return;
+        end
+    else
+        runtime_log( 0, 'ERROR: wrong parameter value under he $REPORT keyword!' );
+        return;
     end
 end
 
@@ -683,7 +749,7 @@ for i = 1:size(info,1)
             case 'MODE'
                 p.mode = info{i,2};
             case 'RATIO'
-                p.ratio = str2double( info{i,2} );            
+                p.ratio = str2double( info{i,2} );
             case 'RATERNA'
                 m.raterna = str2double( info{i,2} );
             case 'RATEP'
