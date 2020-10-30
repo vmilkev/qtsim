@@ -20,9 +20,11 @@ par = fReadSimPar( fParam );
 
 if ( isempty(par.report_def) )
     par.report_def = 0;
-elseif ( isempty(par.report_genS) )
+end
+if ( isempty(par.report_genS) )
     par.report_genS = 0;
-elseif ( isempty(par.report_idS) )
+end
+if ( isempty(par.report_idS) )
     par.report_idS = 0;
 end
 

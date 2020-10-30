@@ -43,9 +43,11 @@ for iFig = 1:figsNum
             if ( iPlot <= gNumAll )
                 subplot( halfG_1,halfG_2, iPlot2 );
                 histogram( P(3:end,iPlot), binNum ,'Normalization','probability' );
-                ylabel('probability');
-                xlabel('normalized product');
-                title(['Gene no. ', num2str( P(1,iPlot) )],'Interpreter','latex');
+                ylabel('probability', 'FontSize',14);
+                xlabel('gene product, [molecules]', 'FontSize',14);
+                t = title(['gene no. ', num2str( P(1,iPlot) )],'Interpreter','latex');
+                t.FontSize = 14;
+                set(gca,'FontSize',14)
                 iPlot2 = iPlot2 + 1;
                 iPlot = iPlot + 1;
             end

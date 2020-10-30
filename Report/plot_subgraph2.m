@@ -34,6 +34,7 @@ for iFig = 1:figsNum
     fig = figure('Name', 'Gene Sub-Network Architecture', 'visible', view_fig, 'PaperPositionMode', 'auto',...
         'units','normalized','position',[0.2,0.2,0.6,0.7]);
     
+    
     iPlot2 = 1;
     for i = 1:halfG_1
         for j = 1:halfG_2
@@ -112,12 +113,21 @@ for iFig = 1:figsNum
                         di = indegree(gr_red);
                         do = outdegree(gr_red);
                         dg = di+do;
-                        nSizes = 2*sqrt( dg - min( dg ) + 0.2 );
+                        %nSizes = 2*sqrt( dg - min( dg ) + 0.2 );
+                        nSizes = (dg./dg) * mean( dg ) * 2;
                         nColors = dg;
-                        p_red = plot( gr_red, 'NodeLabel',nLabels, 'MarkerSize',nSizes,'NodeCData',nColors,'EdgeAlpha',0.9 );
-                        p_red.ArrowSize = 10;
+                        %p_red = plot( gr_red, 'NodeLabel',nLabels, 'MarkerSize',nSizes,'NodeCData',nColors,'EdgeAlpha',0.9 );
+                        p_red = plot( gr_red, 'NodeLabel',nLabels, 'MarkerSize',nSizes,'EdgeAlpha',0.9 );
+                                                
+                        %p_red = plot(gr_red,'MarkerSize',nSizes,'EdgeAlpha',0.9);
+                        layout(p_red,'layered','AssignLayers','alap');
+                        highlight(p_red,find(lb == node(1,iPlot)),'NodeColor','r','MarkerSize',mean( dg ) * 3);
+
+                        p_red.ArrowSize = 11;
                         title(['Gene no. ', num2str( node(1,iPlot) ), name_fig.red.title],'Interpreter','latex');
                     end
+                    
+                    set(gca, 'XColor', 'none', 'YColor', 'none');
                     
                 end
                 iPlot2 = iPlot2 + 1;

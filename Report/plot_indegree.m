@@ -26,12 +26,12 @@ function plot_indegree( G, view_fig, print_fig, name_fig  )
     title('in-Connectivity distribution (log/log scale)','Interpreter','latex');
     ylim([min(fi) inf]);
         
-    if ( print_fig )
+    if ( strcmp( print_fig, 'on' ) )
         %print(gcf, '-dpdf', 'Gene_Network_Architecture.pdf');
         name = strcat(name_fig, '.jpeg');
         print(gcf, '-djpeg', name);
         close(fig);
     end
     %----------------------------------------------------------------------------------------------------------------------
-    
+   
 end

@@ -60,15 +60,29 @@ gSz = size(gene);
 n = gSz(1,2);
 
 if (stochastic.perform)
-    options = ddeset('RelTol', 1.0e-2, 'NormControl', 'on');
-    sol = dde23( @grm_stochastic, L, Y0, T, options );
+    %     options = ddeset('RelTol', 1.0e-2, 'NormControl', 'on');
+    %     sol = dde23( @grm_stochastic, L, Y0, T, options );
+
+    sig = 0.05;
+    tspan = min(T):0.0005*max(T):max(T);
+    
+    % Initialize output function, specify Ito, set random seed
+    opts = sdeset('SDEType','Ito','RandSeed',2);
+
+    % Use Euler-Maruyama to integrate SDEs
+    Ytemp = sde_euler(@(t,y)grm_sde(t,y),@(t,y)wdiff(t,y,sig),tspan,Y0,opts);
+    Y = Ytemp';
+    X = tspan;
 else
     %options = ddeset('RelTol', 1.0e-4, 'NormControl', 'on');
     sol = dde23( @grm, L, Y0, T );
+    
+    X = sol.x;
+    Y = sol.y;
 end
 
-X = sol.x;
-Y = sol.y;
+% X = sol.x;
+% Y = sol.y;
 
 
     function v = grm(t,y,Z)
@@ -162,5 +176,50 @@ Y = sol.y;
         
     end
 
+    function v = grm_sde(t,y)
+        
+        v = zeros(2*n+1,1);
+        
+        for i = 1:n            
+            % getting gene's parameters
+            indexR = gene(i).repressors+n;
+            indexA = gene(i).activators+n;
+            kr = gene(i).kr;
+            kbind = gene(i).kbind;
+            Gbind = gene(i).Gbind;
+            krepr = gene(i).krepr;
+            GattrR = gene(i).GattrR;
+            kattr = gene(i).kattr;
+            GattrA = gene(i).GattrA;
+            GattrA2 = gene(i).GattrA2;
+            gr = gene(i).gr;
+            kp = gene(i).kp;
+            gp = gene(i).gp;
+            
+            % equation for mRNA
+            v(i) = kr * ...
+                   pbind(...
+                        kbind, ...
+                        Gbind, ...
+                        prod( fregr( y(indexR), krepr, GattrR, numel(indexR) ) ).* ...
+                        prod( frega( y(indexA), kattr, GattrA, GattrA2, numel(indexA) ) ) ...
+                        )- gr*y(i);
+            
+            % equation for protein
+            v(i+n) = kp*y(i) - gp*y(i+n);
+        end
+        % virtual activator|repressor if there is no real one for a particular gene
+        v(2*n+1) = 0;
+    end
+
+    function v=wdiff(t,y,sig)
+        v = zeros(2*n+1,1);
+        for i = 1:n
+            v(i) = sig*normrnd(0,stochastic.var)*y(i);
+            v(i+n) = sig*normrnd(0,stochastic.var)*y(i+n);
+        end
+        % virtual activator|repressor if there is no real one for a particular gene
+        v(2*n+1) = 0;
+    end
 
 end

@@ -26,6 +26,8 @@ totalGenes = size(G,1);
 fig = figure('Name', 'Gene Sub-Network Architecture', 'visible', view_fig, 'PaperPositionMode', 'auto',...
         'units','normalized','position',[0.2,0.2,0.6,0.7]);
 
+set(gca, 'XColor', 'none', 'YColor', 'none');
+
 if ( lb ~= 0 )
     
     gr_full = digraph(G);

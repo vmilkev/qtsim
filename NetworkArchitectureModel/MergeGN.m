@@ -57,10 +57,33 @@ end
 % merging loop, createing new edges (only) between the merging networks;
 % here, a random merge is implemented (nodes degrees are not taken into account)
 for i = 1:floor(strength)
-    ri = randi([1 n1]);
-    rj = randi([n1+1 n]);
-    A(ri,rj) = 1;
-    A(rj,ri) = 1;
+    % merge Graph_1 & Graph_2
+    if ( (n1 && n2) ~= 0 )
+        num1 = randi([1 n1]);
+        num2 = randi([n1+1 n1+n2]);
+        ri = randi([num1 n1]);    
+        rj = randi([num2 n1+n2]);
+        A(ri,rj) = 1;
+        A(rj,ri) = 1;
+    end
+    % merge Graph_1 & Graph_3
+    if ( (n1 && n3) ~= 0 )
+        num1 = randi([1 n1]);
+        num2 = randi([n1+n2+1 n]);
+        ri = randi([num1 n1]);    
+        rj = randi([num2 n]);
+        A(ri,rj) = 1;
+        A(rj,ri) = 1;
+    end
+    % merge Graph_2 & Graph_3
+    if ( (n2 && n3) ~= 0 )
+        num1 = randi([n1+1 n1+n2]);
+        num2 = randi([n1+n2+1 n]);
+        ri = randi([num1 n1+n2]);    
+        rj = randi([num2 n]);
+        A(ri,rj) = 1;
+        A(rj,ri) = 1;
+    end
 end
 
 % making a final merged network in terms of adjacency matrix

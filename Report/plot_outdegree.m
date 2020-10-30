@@ -25,7 +25,7 @@ function plot_outdegree( G, view_fig, print_fig, name_fig  )
     title('out-Connectivity distribution (log/log scale)','Interpreter','latex');
     ylim([min(fo) inf]);
     
-    if ( print_fig )
+    if ( strcmp( print_fig, 'on' ) )
         %print(gcf, '-dpdf', 'Gene_Network_Architecture.pdf');
         name = strcat(name_fig, '.jpeg');
         print(gcf, '-djpeg', name);

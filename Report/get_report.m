@@ -14,20 +14,12 @@ config_view.print_fig = 'on';
 
 % DEFAULT option
 if ( inparam.report_def )
-    
-    %--------------------------------------------------------------------------
-    
+       
+    %--------------------------------------------------------------------------  
     network = strcat(datapath,'/N_snpID.gntw');
     networkA = strcat(datapath,'/A_snpID.gntw');
     networkR = strcat(datapath,'/R_snpID.gntw');
-    %--------------------------------------------------------------------------
-    % display full network
-    config_view.view = 'all';
-    plot_ntw( network, config_view, strcat(resname,'/Complete_network')  );
-    plot_ntw( networkA, config_view, strcat(resname,'/Activators_sub-network')  );
-    plot_ntw( networkR, config_view, strcat(resname,'/Repressors_sub-network')  );
-    %--------------------------------------------------------------------------
-    
+
     %--------------------------------------------------------------------------
     % display network degree distribution
     config_view.view = 'indegree';
@@ -44,7 +36,16 @@ if ( inparam.report_def )
         product{1,iP} =  strcat(resname1,pFiles{iP,1}) ;
         %product{1,iP} = pFiles{iP,1};
     end
-    core = plot_products( product, strcat(resname,'/Core_products_distribution'), config_view, 20 );
+    core = plot_products( product, strcat(resname,'/Core_products_distribution'), config_view, 12 );
+    %--------------------------------------------------------------------------
+    
+    %--------------------------------------------------------------------------
+    % display full network
+    config_view.view = 'all';
+    config_view.node = core'; % selected genes
+    plot_ntw( network, config_view, strcat(resname,'/Complete_network')  );
+    plot_ntw( networkA, config_view, strcat(resname,'/Activators_sub-network')  );
+    plot_ntw( networkR, config_view, strcat(resname,'/Repressors_sub-network')  );
     %--------------------------------------------------------------------------
     
     %--------------------------------------------------------------------------
@@ -57,7 +58,7 @@ if ( inparam.report_def )
     config_view.node = core'; % selected genes
     config_view.orient = 'both'; % type of connections
     
-    plot_ntw( network, config_view, nameFig, min( 20,size(core,1) )  );
+    plot_ntw( network, config_view, nameFig, min( 12,size(core,1) )  );
     
     %--------------------------------------------------------------------------
     
@@ -88,7 +89,7 @@ if ( inparam.report_genS )
     config_view.which_plot = 'reduced'; % network representation mode
     config_view.node = inparam.report_genV; % selected genes
     config_view.orient = 'both'; % type of connections
-    plot_ntw( network, config_view, nameFig, min( 16,size(config_view.node,2) )  );
+    plot_ntw( network, config_view, nameFig, min( 12,size(config_view.node,2) )  );
     
     config_view.which_plot = 'full'; % network representation mode
     plot_ntw( network, config_view, nameFig, min( 4,size(config_view.node,2) )  );
@@ -105,7 +106,7 @@ if ( inparam.report_idS )
     
     normalize = 'on';
     
-    plot_productsT( res_folder, id, gen, prod_type, normalize, strcat(resname,'/selected_products_dynamics'), config_view, min( 16,size(id,1) ) );
+    plot_productsT( res_folder, id, gen, prod_type, normalize, strcat(resname,'/selected_products_dynamics'), config_view, min( 12,size(id,1) ) );
     
 end
 

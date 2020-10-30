@@ -35,7 +35,7 @@ end
     
     if ( strcmp( config.view, 'all' ) )
         
-        plot_fullgraph( G, config.view_fig, config.print_fig, name_fig );
+        plot_fullgraph( G, config.node, config.view_fig, config.print_fig, name_fig );
         
     elseif ( strcmp( config.view, 'sub' ) )
         
