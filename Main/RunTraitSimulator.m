@@ -1,6 +1,6 @@
 function RunTraitSimulator( simSetUpFile )
 
-runtime_log( 1, 'STARTING TraitSim' );
+runtime_log( 1, 'STARTING MESCOT' );
 
 if ( isempty(simSetUpFile) )
     fParam = FindParFile( pwd, '.tsim' );
@@ -12,7 +12,7 @@ if ( isempty(fParam) )
     runtime_log( 0, 'ERROR: program cannot find "*.tsim" file!' );
     return;
 else
-    runtime_log( 0, 'TraitSim parameters file name..........:', fParam );
+    runtime_log( 0, 'MESCOT parameters file name..........:', fParam );
 end
 
 % Read configuration parameters from *.tsim file
@@ -385,7 +385,7 @@ end
 
 if ( is_report )
     if ( fSavedPath == 0 )
-        fSavedPath = 'traitsim_report';
+        fSavedPath = 'mescot_report';
     end
     get_report( fSavedPath, par );
     runtime_log( 0, 'REPORTING COMPLETED SUCCESSFULLY' );
@@ -797,7 +797,7 @@ ntwSize = size( ntwN );
 % write (recoded in snpIDs) N, A and R networks to files
 
 if ( ~rslt_path )
-    res_folder = strcat( 'traitsim_results-', date );
+    res_folder = strcat( 'mescot_results-', date );
 else
     res_folder = rslt_path;
 end

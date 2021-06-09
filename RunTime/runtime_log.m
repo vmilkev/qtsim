@@ -6,7 +6,7 @@ end
 
 % res_folder = strcat( 'traitsim_results-', date );
 % logFileName = strcat( res_folder, '/runtime.log' );
-logFileName = strcat( 'tsim_runtime.log' );
+logFileName = strcat( 'mescot_runtime.log' );
 
 % if ( ~MakeFolder(res_folder) )
 %     return;

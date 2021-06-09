@@ -218,7 +218,7 @@ P.genes = ntwSize(1,1);
 % write N, A, R to file
 
 if ( ~rslt_path )
-    res_folder = strcat( 'traitsim_results-', date );
+    res_folder = strcat( 'mescot_results-', date );
 else
     res_folder = rslt_path;
 end
